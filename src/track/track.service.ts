@@ -6,6 +6,7 @@ import { Comment } from './models/comments.model';
 import { Track } from './models/track.model';
 import { IDeletedTrack, IOneTrackWithComments } from './interfaces/trackInterfaces';
 import { FileService, FileType } from 'src/file/file.service';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class TrackService {
@@ -18,16 +19,22 @@ export class TrackService {
   async create(dto: CreateTrackDto, picture: Express.Multer.File, audio: Express.Multer.File): Promise<Track> {
     const audioPath = this.fileService.createFile(FileType.AUDIO, audio);
     const picturePath = this.fileService.createFile(FileType.IMAGE, picture);
-    
-    if (!dto.artist) {
-      dto = {...dto, artist: 'Незивестный исполнитель'}
+
+    if (!dto.artist || dto.artist === '') {
+      dto = { ...dto, artist: 'Незивестный исполнитель' };
     }
 
     return await this.trackModel.create({ ...dto, listens: 0, picture: picturePath, audio: audioPath });
   }
 
-  async getAll(): Promise<Track[]> {
-    return await this.trackModel.findAll();
+  async getAll(limit = 10, offset = 0): Promise<Track[]> {
+    return await this.trackModel.findAll({ limit, offset });
+  }
+
+  async search(query: string): Promise<Track[]> {
+    const regexp = new RegExp(query, 'i');
+    const tracks = await this.trackModel.findAll();
+    return await tracks.filter(({ name }) => name.match(regexp));
   }
 
   async getOne(id: string): Promise<Track> {
@@ -60,5 +67,11 @@ export class TrackService {
     }
     const comment = await this.commentModel.create(dto);
     return comment;
+  }
+
+  async listen(id: string): Promise<void> {
+    const track = await this.trackModel.findOne({ where: { id } });
+    track.listens += 1;
+    track.save();
   }
 }

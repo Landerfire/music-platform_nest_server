@@ -1,6 +1,6 @@
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { TrackService } from './track.service';
-import { Body, Controller, Delete, Get, Param, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Track } from './models/track.model';
@@ -33,8 +33,13 @@ export class TrackController {
   @ApiOperation({ summary: 'Запрос массива всех треков' })
   @ApiResponse({ status: 200, type: [Track] })
   @Get()
-  getAll() {
-    return this.trackService.getAll();
+  getAll(@Query('limit') limit: number, @Query('offset') offset: number) {
+    return this.trackService.getAll(limit, offset);
+  }
+
+  @Get('/search')
+  search(@Query('query') query: string) {
+    return this.trackService.search(query)
   }
 
   @ApiOperation({ summary: 'Запрос трека по селектору: id (с возможностью запроса комментариев к треку)' })
@@ -59,5 +64,12 @@ export class TrackController {
   @Post('/comment')
   addComment(@Body() dto: CreateCommentDto) {
     return this.trackService.addComment(dto);
+  }
+
+  @ApiOperation({ summary: 'Увеличение кол-ва прослушиваний трека' })
+  @ApiResponse({ status: 200 })
+  @Put('/listen/:id')
+  listen(@Param('id') id: string) {
+    return this.trackService.listen(id);
   }
 }
