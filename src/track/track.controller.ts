@@ -26,6 +26,7 @@ export class TrackController {
     @Body() dto: CreateTrackDto,
   ) {
     const { picture, audio } = files;
+
     return this.trackService.create(dto, picture[0], audio[0]);
   }
 

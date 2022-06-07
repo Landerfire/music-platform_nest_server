@@ -1,3 +1,4 @@
+import { FileModule } from './file/file.module';
 import { TrackModule } from './track/track.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -6,11 +7,16 @@ import { Album } from './album/album.model';
 import { Track } from './track/models/track.model';
 import { Comment } from './track/models/comments.model';
 import { AlbumModule } from './album/album.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: `.development.env`,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: path.resolve(__dirname, 'static'),
     }),
     SequelizeModule.forRoot({
       dialect: 'postgres',
@@ -24,6 +30,7 @@ import { AlbumModule } from './album/album.module';
     }),
     TrackModule,
     AlbumModule,
+    FileModule,
   ],
 })
 export class AppModule {}

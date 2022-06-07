@@ -5,17 +5,25 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Comment } from './models/comments.model';
 import { Track } from './models/track.model';
 import { IDeletedTrack, IOneTrackWithComments } from './interfaces/trackInterfaces';
+import { FileService, FileType } from 'src/file/file.service';
 
 @Injectable()
 export class TrackService {
   constructor(
     @InjectModel(Track) private trackModel: typeof Track,
     @InjectModel(Comment) private commentModel: typeof Comment,
+    private fileService: FileService,
   ) {}
 
   async create(dto: CreateTrackDto, picture: Express.Multer.File, audio: Express.Multer.File): Promise<Track> {
-    const track = await this.trackModel.create({ ...dto, listens: 0 });
-    return track;
+    const audioPath = this.fileService.createFile(FileType.AUDIO, audio);
+    const picturePath = this.fileService.createFile(FileType.IMAGE, picture);
+    
+    if (!dto.artist) {
+      dto = {...dto, artist: 'Незивестный исполнитель'}
+    }
+
+    return await this.trackModel.create({ ...dto, listens: 0, picture: picturePath, audio: audioPath });
   }
 
   async getAll(): Promise<Track[]> {
