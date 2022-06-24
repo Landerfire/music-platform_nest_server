@@ -42,7 +42,7 @@ export class TrackService {
   }
 
   async getOneWithComments(id: string): Promise<IOneTrackWithComments> {
-    const track = await this.trackModel.findOne();
+    const track = await this.trackModel.findOne({ where: { id } });
     const comments = await this.commentModel.findAll({ where: { track_id: id } });
     return { track, comments };
   }
